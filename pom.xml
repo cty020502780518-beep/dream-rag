@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.cty</groupId>
-    <artifactId>SmartPAI</artifactId>
+    <artifactId>dream-rag</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>SmartPAI</name>
-    <description>SmartPAI</description>
+    <name>Dream RAG</name>
+    <description>Enterprise RAG knowledge engine with async document processing and streaming chat</description>
     <url/>
     <licenses>
         <license/>
@@ -46,6 +46,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

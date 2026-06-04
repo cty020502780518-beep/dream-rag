@@ -1,0 +1,15 @@
+target
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+logs
+*.log
+.env
+.env.*
+!.env.example
+frontend/node_modules
+frontend/dist
+frontend/.turbo
+frontend/.vite

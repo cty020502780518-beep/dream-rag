@@ -51,6 +51,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/users/register", "/api/v1/users/login").permitAll()
                             // 允许测试接口
                             .requestMatchers("/api/v1/test/**").permitAll()
+                            // 允许容器/负载均衡器访问健康检查；metrics 等仍按默认规则需要认证
+                            .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                             // 文件上传和下载相关接口 - 普通用户和管理员都可访问
                             .requestMatchers(
                                     "/api/v1/upload/**",

@@ -1,4 +1,4 @@
-name: pai_smart
+name: dream_rag
 
 services:
   mysql:
@@ -8,14 +8,14 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
     volumes:
       - mysql-data:/var/lib/mysql
       - /data/docker/mysql/conf:/etc/mysql/conf.d
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp=true --lower_case_table_names=1
     healthcheck:
       start_period: 5s
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
       timeout: 5s
       retries: 5
 
@@ -30,14 +30,21 @@ services:
       - minio-data:/data
       - /data/docker/minio/config:/root/.minio
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change_me}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
     command: server /data --console-address ":19001" -address ":19000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis
     container_name: redis
     restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
     ports:
       - "6379:6379"
     volumes:
@@ -45,15 +52,18 @@ services:
       - /data/docker/redis:/logs
     healthcheck:
       start_period: 5s
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG"]
       interval: 5s
       timeout: 5s
       retries: 5
-    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass ${REDIS_PASSWORD:-change_me} --appendonly yes
+    command:
+      - sh
+      - -c
+      - redis-server --bind 0.0.0.0 --port 6379 --requirepass "$${REDIS_PASSWORD}" --appendonly yes
 
   kafka:
     image: bitnamilegacy/kafka:latest
-    container_name: kafka       # 如果需要按照新的命名规则，请改为 pai_smart_kafka
+    container_name: kafka       # 如需固定容器命名，可按项目命名规则改为 dream_rag_kafka
     restart: always
     ports:
       - "9092:9092"
@@ -121,14 +131,14 @@ services:
     volumes:
       - es-data:/usr/share/elasticsearch/data
     environment:
-      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-change_me}
-      - node.name=pai-smart-es01
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:?set ELASTICSEARCH_PASSWORD in .env}
+      - node.name=dream-rag-es01
       - discovery.type=single-node
       - xpack.license.self_generated.type=basic
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=false
       - xpack.security.http.ssl.enabled=false
-      - cluster.name=pai-smart-es-cluster
+      - cluster.name=dream-rag-es-cluster
 
       # 内存配置 (根据可用RAM调整)
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
@@ -147,10 +157,64 @@ services:
       /usr/local/bin/docker-entrypoint.sh
       "
     healthcheck:
-      test: [ 'CMD', 'curl', '-s', 'http://localhost:9200/_cluster/health?pretty' ]
+      test: [ 'CMD-SHELL', 'curl -fsS -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health >/dev/null || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  dream-rag-app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: dream-rag-app
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/DreamRAG?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MINIO_ENDPOINT: http://minio:19000
+      MINIO_PUBLIC_URL: http://localhost:19000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      MINIO_BUCKET_NAME: uploads
+      ELASTICSEARCH_HOST: es
+      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_SCHEME: http
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?set ELASTICSEARCH_PASSWORD in .env}
+      ELASTICSEARCH_INSECURE_TRUST_ALL_CERTIFICATES: "false"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      SECURITY_ALLOWED_ORIGINS: ${SECURITY_ALLOWED_ORIGINS:-http://localhost:*,http://127.0.0.1:*}
+      MANAGEMENT_HEALTH_SHOW_DETAILS: never
+      LOG_LEVEL_APP: INFO
+      LOG_LEVEL_WEB: INFO
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      es:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health/readiness >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
 
 volumes:
   redis-data:

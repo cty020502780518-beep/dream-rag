@@ -35,7 +35,7 @@ public class EsConfig {
     @Value("${elasticsearch.username:elastic}")
     private String username;
 
-    @Value("${elasticsearch.password:changeme}")
+    @Value("${elasticsearch.password:}")
     private String password;
 
     @Value("${elasticsearch.insecure-trust-all-certificates:true}")

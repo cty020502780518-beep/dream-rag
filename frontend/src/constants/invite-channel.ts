@@ -1,6 +1,6 @@
 export const inviteChannelConfig = {
-  officialAccountName: '沉默王二',
-  replyKeywords: ['聪明'],
+  officialAccountName: '示例公众号',
+  replyKeywords: ['DEMO'],
   qrCodeImageUrl: 'https://cdn.example.com/paicoding/image-a3b05190f61e4fd0b376489336e31c14.jpg'
 } as const;
 

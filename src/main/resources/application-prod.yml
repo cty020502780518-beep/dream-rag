@@ -27,3 +27,8 @@ logging:
     org.springframework.security: INFO
     com.cty.dreamrag: INFO
     io.minio: WARN
+management:
+  endpoint:
+    health:
+      show-details: never
+

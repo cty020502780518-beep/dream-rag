@@ -1,5 +1,5 @@
 {
-  "name": "pi-smart",
+  "name": "dream-rag-frontend",
   "type": "module",
   "version": "1.3.13",
   "description": "DreamRAG",
@@ -21,7 +21,7 @@
     "llm",
     "chat",
     "cty020502780518-beep",
-    "pai-smart"
+    "knowledge-base"
   ],
   "engines": {
     "node": ">=18.20.0",

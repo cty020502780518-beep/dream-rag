@@ -222,6 +222,30 @@ ai:
     max-tokens: ${AI_GENERATION_MAX_TOKENS:2000}
     top-p: ${AI_GENERATION_TOP_P:0.9}
 
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        # health/info 便于容器探活，metrics 便于面试展示基础可观测性
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: ${MANAGEMENT_HEALTH_SHOW_DETAILS:when_authorized}
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+info:
+  app:
+    name: Dream RAG
+    description: Enterprise RAG knowledge engine with async document processing and streaming chat
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
+
 # 微信支付相关配置（生产环境按需配置，开发环境无需开启）
 wx:
   pay:
