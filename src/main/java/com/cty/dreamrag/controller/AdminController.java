@@ -208,13 +208,13 @@ public class AdminController {
                     "username", "user1",
                     "action", "LOGIN",
                     "timestamp", "2023-03-01T10:15:30",
-                    "ip_address", "192.168.1.100"
+                    "ip_address", "10.0.0.1"
                 ),
                 Map.of(
                     "username", "user2",
                     "action", "UPLOAD_FILE",
                     "timestamp", "2023-03-01T11:20:45",
-                    "ip_address", "192.168.1.101"
+                    "ip_address", "10.0.0.2"
                 )
             );
             
