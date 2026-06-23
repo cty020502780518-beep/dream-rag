@@ -11,7 +11,7 @@
     <groupId>com.cty</groupId>
     <artifactId>dream-rag</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Dream RAG</name>
+    <name>dream-rag</name>
     <description>Enterprise RAG knowledge engine with async document processing and streaming chat</description>
     <url/>
     <licenses>
