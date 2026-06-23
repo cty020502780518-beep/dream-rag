@@ -2,13 +2,6 @@
 
 基于 RAG（检索增强生成）的企业级 AI 知识库系统，支持多租户文档智能检索与对话问答，提供从文档上传、切片向量化到语义检索、流式对话的完整链路。
 
-
-## 项目说明
-
-本仓库为学习实践、二次开发与面试复盘用途的源码展示版本，已移除真实密钥并统一了公开仓库中的项目命名。仓库不声明所有代码均为从零自研；前端管理后台、通用组件包、工程脚手架与部分业务扩展代码可能来源于开源项目或模板工程的学习与改造，原始作者信息与许可证声明应继续保留，详见 `NOTICE.md`。
-
-代码阅读重点是 RAG 文档处理链路、Kafka 异步消费、Elasticsearch 检索、WebSocket 流式对话、Redis 生成状态管理等后端工程实现。仓库中保留的 Token 配额/充值相关代码属于可选业务扩展，不是阅读本项目核心 RAG 链路的必要部分。个人复盘/答辩时建议只围绕自己能够解释清楚的核心链路展开，不把模板代码、通用后台能力或第三方基础设施描述为完全原创实现。
-
 ## 技术栈
 
 | 层级 | 技术 |
@@ -38,7 +31,7 @@ Spring Boot Backend                        Port 8081
 Infrastructure: MySQL / Redis / ES / Kafka / MinIO
 ```
 
-## 本地启动
+## 快速开始
 
 ### 前置条件
 
@@ -93,21 +86,12 @@ pnpm dev
 
 详见 `.env.example` 和 `src/main/resources/application.yml`。
 
-## 运维与可观测性
-
-- `Dockerfile`：后端多阶段构建，运行镜像内置健康检查。
-- `docs/docker-compose.yaml`：基础设施与后端应用统一编排；MySQL、Redis、Kafka、ES、MinIO、应用服务均配置健康检查。
-- `/actuator/health`：应用健康状态。
-- `/actuator/health/liveness`：进程存活探针。
-- `/actuator/health/readiness`：依赖就绪探针，适合 Docker / K8s readiness check。
-- `GlobalExceptionHandler`：统一未捕获异常响应格式，减少堆栈和敏感配置外泄风险。
-
 ## 核心功能
 
 - **文档智能处理**：上传 → 解析 → 文本切片 → 向量化入库全流程自动化
 - **异步消息驱动**：Kafka 解耦文件处理链路，支持重试与死信队列
 - **混合语义检索**：Elasticsearch 关键词 + 向量相似度混合搜索
-- **WebSocket 流式对话**：全双工通信，后端接入 LLM SSE 流实现逐字输出
+- **WebSocket 流式对话**：全双工通信，后端通过 WebFlux 消费 LLM SSE 流，经 WebSocket 推送到前端
 - **断线续传与状态管理**：Redis 维护对话上下文窗口，断线重连自动恢复
 - **多租户架构**：组织标签隔离，公开/私有文档权限控制
 
@@ -128,6 +112,15 @@ pnpm dev
 ### 4. Elasticsearch 混合检索
 
 结合 BM25 关键词检索与向量语义检索，支持文档级和段落级召回，可继续扩展 rerank。
+
+## 运维与可观测性
+
+- `Dockerfile`：后端多阶段构建，运行镜像内置健康检查。
+- `docs/docker-compose.yaml`：基础设施与后端应用统一编排；MySQL、Redis、Kafka、ES、MinIO、应用服务均配置健康检查。
+- `/actuator/health`：应用健康状态。
+- `/actuator/health/liveness`：进程存活探针。
+- `/actuator/health/readiness`：依赖就绪探针，适合 Docker / K8s readiness check。
+- `GlobalExceptionHandler`：统一未捕获异常响应格式，减少堆栈和敏感配置外泄风险。
 
 ---
 
@@ -177,6 +170,12 @@ pnpm dev
 Java 139 · TypeScript 150 · Vue 94 · 总计约 480 个源文件
 
 ---
+
+## 项目范围说明
+
+本仓库为学习实践、二次开发与面试复盘用途的源码展示版本，已移除真实密钥并统一了公开仓库中的项目命名。仓库不声明所有代码均为从零自研；前端管理后台、通用组件包、工程脚手架与部分业务扩展代码可能来源于开源项目或模板工程的学习与改造，原始作者信息与许可证声明应继续保留，详见 `NOTICE.md`。
+
+代码阅读重点是 RAG 文档处理链路、Kafka 异步消费、Elasticsearch 检索、WebSocket 流式对话、Redis 生成状态管理等后端工程实现。仓库中保留的 Token 配额/充值相关代码属于可选业务扩展。个人复盘/答辩时建议只围绕自己能够解释清楚的核心链路展开。
 
 ## License
 
