@@ -19,16 +19,77 @@
 
 ## 系统架构
 
+```mermaid
+graph TD
+    A[Vue 3 Frontend<br/>Naive UI + Pinia<br/>Port 9527] -->|HTTP/WebSocket| B[Spring Boot Backend<br/>Port 8081]
+    B -->|JWT Auth| C[(MySQL 8.0<br/>Users / Docs)]
+    B -->|SSE Stream| D[DeepSeek LLM]
+    B -->|Embedding API| E[DashScope]
+    B --> F[(Redis 7<br/>Context / State)]
+    B --> G[Elasticsearch 8.10<br/>BM25 + Vector Search]
+    B --> H[Kafka<br/>Async Processing]
+    H -->|Consume| I[FileProcessingConsumer]
+    I -->|parse| J[Apache Tika / PDFBox]
+    I -->|vectorize| E
+    I -->|index| G
+    B --> K[(MinIO<br/>Object Storage)]
 ```
-Vue 3 Frontend (Naive UI + Pinia)         Port 9527
-        | HTTP/WebSocket
-Spring Boot Backend                        Port 8081
-   ├── Document Upload → Kafka → Async Processing
-   ├── Elasticsearch (向量 + 关键词混合检索)
-   ├── DeepSeek LLM (SSE) → WebFlux → WebSocket → Frontend
-   └── Redis (对话上下文窗口)
-        |
-Infrastructure: MySQL / Redis / ES / Kafka / MinIO
+
+### 文档处理数据流
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant API as UploadController
+    participant Kafka as Kafka
+    participant Consumer as FileProcessingConsumer
+    participant MinIO as MinIO
+    participant Tika as Apache Tika
+    participant ES as Elasticsearch
+    participant Embedding as DashScope
+
+    U->>API: POST /upload (file)
+    API->>MinIO: Store merged file
+    API->>Kafka: Publish file-processing task
+    API-->>U: Upload accepted
+    Kafka->>Consumer: Consume task
+    Consumer->>MinIO: Download file stream
+    Consumer->>Tika: Parse document
+    Tika-->>Consumer: Text chunks
+    Consumer->>Embedding: Vectorize chunks
+    Embedding-->>Consumer: Vectors
+    Consumer->>ES: Bulk index (chunks + vectors)
+    Consumer-->>Kafka: Ack / DLT on failure
+```
+
+### WebSocket 流式对话
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant WS as ChatWebSocketHandler
+    participant CH as ChatHandler
+    participant Search as HybridSearchService
+    participant ES as Elasticsearch
+    participant LLM as DeepSeekClient (SSE)
+    participant Redis as Redis
+
+    U->>WS: WebSocket connect + JWT
+    WS->>CH: processMessage(userId, message)
+    CH->>Search: search_knowledge(query)
+    Search->>ES: BM25 + Vector hybrid search
+    ES-->>Search: SearchResults
+    Search-->>CH: Ranked results + context
+    CH->>LLM: POST /chat/completions (stream=true)
+    LLM-->>CH: SSE data chunks
+    CH->>Redis: Append chunk (atomic write)
+    CH->>WS: sendMessage(chunk)
+    WS-->>U: { type: "chunk", chunk: "..." }
+    U->>WS: { type: "stop" }
+    WS->>CH: stopResponse()
+    CH->>LLM: Cancel upstream SSE
+    CH->>Redis: Mark generation cancelled
+    WS-->>U: { type: "stop" }
 ```
 
 ## 快速开始
