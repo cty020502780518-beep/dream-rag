@@ -55,11 +55,26 @@ docker compose -f docs/docker-compose.yaml up -d --build
 
 该 Compose 会启动 MySQL / Redis / ES / Kafka / MinIO 与 `dream-rag-app`，并基于 Actuator readiness 做容器健康检查。
 
+启动后验证：
+
+```bash
+# 检查所有容器运行状态
+docker compose -f docs/docker-compose.yaml ps
+
+# 检查应用健康状态
+curl -s http://localhost:8081/actuator/health
+
+# 检查依赖就绪
+curl -s http://localhost:8081/actuator/health/readiness
+```
+
 ### 3. 本地源码方式启动后端
 
 ```bash
 mvn spring-boot:run
 ```
+
+启动后可通过 `http://localhost:8081/actuator/health` 验证。
 
 ### 4. 启动前端
 
@@ -70,6 +85,8 @@ pnpm dev
 ```
 
 访问 http://localhost:9527
+
+> 遇到问题？查看 `Dockerfile` 和 `docs/docker-compose.yaml` 了解完整配置。
 
 ## 环境变量
 
