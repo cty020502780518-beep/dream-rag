@@ -204,9 +204,11 @@ pnpm dev
 
 ## 面试官源码阅读导航
 
-> 如果您正在评估候选人此项目的技术深度，以下路径可按优先级阅读。
+> 如果您正在评估候选人此项目的技术深度，以下路径可按优先级阅读。每级标注了预估阅读时间与涉及的核心技术概念。
 
-### 第一优先：文档处理与异步链路
+### 第一优先：文档处理与异步链路 （预估 30-45 分钟）
+
+核心技术：Spring Boot · Kafka · Elasticsearch · Apache Tika · 向量化
 
 | 文件 | 关注点 |
 |------|--------|
@@ -215,16 +217,21 @@ pnpm dev
 | `src/main/java/com/cty/dreamrag/service/ElasticsearchService.java` | ES 索引与混合检索 |
 | `src/main/java/com/cty/dreamrag/config/KafkaConfig.java` | Kafka 生产者/消费者配置 |
 
-### 第二优先：WebSocket 流式对话与状态管理
+### 第二优先：WebSocket 流式对话与状态管理 （预估 25-35 分钟）
+
+核心技术：WebSocket · WebFlux · SSE · Redis 状态机 · ReAct Agent 循环
 
 | 文件 | 关注点 |
 |------|--------|
 | `src/main/java/com/cty/dreamrag/handler/ChatWebSocketHandler.java` | WebSocket 消息处理器，流式推送核心 |
 | `src/main/java/com/cty/dreamrag/client/DeepSeekClient.java` | DeepSeek LLM SSE 流式调用 |
+| `src/main/java/com/cty/dreamrag/service/ChatHandler.java` | ReAct 工具循环与流式响应管理 |
 | `src/main/java/com/cty/dreamrag/service/ChatGenerationStateService.java` | 生成状态机与断线续传 |
 | `src/main/java/com/cty/dreamrag/service/ChatSessionRegistry.java` | 会话注册与上下文管理 |
 
-### 第三优先：安全与架构
+### 第三优先：安全与架构 （预估 15-20 分钟）
+
+核心技术：Spring Security · JWT · 多租户 · Docker · Actuator
 
 | 文件 | 关注点 |
 |------|--------|
@@ -235,7 +242,9 @@ pnpm dev
 | `src/main/java/com/cty/dreamrag/exception/GlobalExceptionHandler.java` | 全局异常处理与统一错误响应 |
 | `Dockerfile` / `docs/docker-compose.yaml` | 容器化、健康检查、环境变量化配置 |
 
-### 第四优先：前端核心
+### 第四优先：前端核心 （预估 10-15 分钟）
+
+核心技术：Vue 3 · TypeScript · Naive UI · Pinia · WebSocket 客户端
 
 | 文件 | 关注点 |
 |------|--------|
@@ -246,6 +255,8 @@ pnpm dev
 ### 代码规模
 
 Java 139 · TypeScript 150 · Vue 94 · 总计约 480 个源文件
+
+**总预估阅读时间：约 80-115 分钟**（聚焦核心链路，不含第三方模板与通用后台代码）
 
 ---
 
