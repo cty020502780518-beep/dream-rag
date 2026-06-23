@@ -25,7 +25,7 @@ Vue 3 Frontend (Naive UI + Pinia)         Port 9527
 Spring Boot Backend                        Port 8081
    ├── Document Upload → Kafka → Async Processing
    ├── Elasticsearch (向量 + 关键词混合检索)
-   ├── DeepSeek LLM (流式 SSE → WebSocket)
+   ├── DeepSeek LLM (SSE) → WebFlux → WebSocket → Frontend
    └── Redis (对话上下文窗口)
         |
 Infrastructure: MySQL / Redis / ES / Kafka / MinIO
